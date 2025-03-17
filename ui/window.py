@@ -5,17 +5,26 @@ class Pointer:
     def __init__(self, value):
         self.value = value
 
-class Reflection(ui):
+class Reflection(ui): # 将自己的中心坐标反射到给定的指针，并且会根据指针的变化而移动
     def __init__(self, x : Pointer, y : Pointer, width, height):
         super().__init__(x.value - width / 2, y.value - height / 2, width, height)
         self.x = x
         self.y = y
+        self.color = [(200,200,200),(255,0,0),(0,0,255)]
+        self.color_index = 0
+        self.hover_time = 0
     def own_draw(self, screen):
-        super().own_draw(screen)
+        rect = self.global_rect()
+        pygame.draw.rect(screen, self.color[self.color_index], rect, 2)
         self.rect.x = int(self.x.value - self.rect.width / 2)
         self.rect.y = int(self.y.value - self.rect.height / 2)
     def hovered_event(self, event):
-        return
+        self.hover_time /= 2
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                self.color_index = 1
+        else:
+            self.color_index = 2
     def drag_event(self, event):
         # 窗口移动的事件
         if event:
@@ -26,6 +35,9 @@ class Reflection(ui):
                 self.x.value = self.rect.x + self.rect.width / 2
                 self.y.value = self.rect.y + self.rect.height / 2
     def handle_event(self, event):
+        self.hover_time += 1
+        if self.hover_time > 100:
+            self.color_index = 0
         return False
 
 class Window(ui):
@@ -33,19 +45,23 @@ class Window(ui):
         super().__init__(x, y, width, height)
         self.offset_x = 0
         self.offset_y = 0
-        self.color_option = [(100,100,100),(0,255,0),(0,0,255)]
-        self.rect_color = self.color_option[0]
+        self.color = [(100,100,100),(0,255,0),(0,0,255)]
+        self.color_index = 0
 
         self.left = Pointer(x)
         self.top = Pointer(y)
-        self.topleft = Reflection(self.left, self.top, 10, 10)
-
         self.right = Pointer(x + width)
         self.bottom = Pointer(y + height)
-        self.rightbottom = Reflection(self.right, self.bottom, 10, 10)
+
+        self.topleftResize = Reflection(self.left, self.top, 10, 10)
+        self.rightbottomResize = Reflection(self.right, self.bottom, 10, 10)
+        self.toprightResize = Reflection(self.right, self.top, 10, 10)
+        self.leftbottomResize = Reflection(self.left, self.bottom, 10, 10)
     def rebuild(self):
-        self.root_ui.add_child(self.topleft)
-        self.root_ui.add_child(self.rightbottom)
+        self.root_ui.add_child(self.topleftResize)
+        self.root_ui.add_child(self.rightbottomResize)
+        self.root_ui.add_child(self.toprightResize)
+        self.root_ui.add_child(self.leftbottomResize)
     def full(self): # 全局窗口变换, 鼠标移动窗口的时候可能会有比例缩放问题
         bouding_box = [float('inf'), float('inf'), float('-inf'), float('-inf')]
         for child in self.children:
@@ -62,7 +78,7 @@ class Window(ui):
             self.inner_gravity = [rect_center[0] - box_center[0], rect_center[1] - box_center[1], box_center[0], box_center[1], self.gravity[4] * scaled, self.gravity[5] * scaled]
     def own_draw(self, screen):
         rect = self.global_rect()
-        pygame.draw.rect(screen, self.rect_color, rect, 2)
+        pygame.draw.rect(screen, self.color[self.color_index], rect, 2)
         # 将浮点数转换为整数以避免类型错误
         self.rect.x = int(self.left.value)
         self.rect.y = int(self.top.value)
@@ -72,10 +88,12 @@ class Window(ui):
     def hovered_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
-                self.rect_color = self.color_option[1]
+                self.color_index = 1
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:
-                self.rect_color = self.color_option[0]
+                self.color_index = 2
+        else:
+            self.color_index = 0
     def drag_event(self, event):
         # 窗口移动的事件
         if event:
