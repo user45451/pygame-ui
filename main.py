@@ -1,7 +1,7 @@
 import pygame
-from ui import window
-from ui.window import *
-from ui.Text import TextBox
+from ui.ui import ui
+from ui.Window import Window
+from ui.TextBox import TextBox
 
 # 初始化pygame
 pygame.init()
@@ -35,6 +35,19 @@ root_ui.add_child(window)
 root_ui.add_child(window1)
 
 
+# 修改主循环以使用窗口类
+outer_window = Window(400, 100, 300, 200)
+# 每个窗口内部生成窗口阵列
+def generate(root_window, level):
+    for j in range(3):
+        for k in range(3):
+            inner_window = Window(100 + j * 50, 100 + k * 50, 50, 50)
+            if level - 1 > 0:
+                generate(inner_window, level - 1)
+            root_window.add_child(inner_window)
+root_ui.add_child(outer_window)
+
+generate(outer_window, 2)
 
 while running:
     for event in pygame.event.get():
