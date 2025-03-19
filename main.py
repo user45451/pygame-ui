@@ -1,7 +1,9 @@
 import pygame
-from ui import window
-from ui.window import *
-from ui.Text import TextBox
+from ui.ui import ui
+from ui.Window import Window
+from ui.TextBox import TextBox
+from ui.ImageUI import ImageUI
+from ui.VideoUI import VideoUI
 
 # 初始化pygame
 pygame.init()
@@ -9,7 +11,7 @@ pygame.init()
 # 设置窗口大小
 width, height = 800, 600
 screen = pygame.display.set_mode((width, height))
-pygame.display.set_caption('按钮UI示例')
+pygame.display.set_caption('UI示例')
 
 # 定义颜色
 WHITE = (255, 255, 255)
@@ -20,20 +22,24 @@ GRAY = (200, 200, 200)
 # 主循环
 running = True
 root_ui = ui(0, 0, width, height)
-text_box = TextBox(0, 0, 100, 50, '你好!')
-text_box1 = TextBox(0, 0, 100, 50, '你好!')
-
+text_box = TextBox(0, 0, 100, 50, '点击以编辑文本\n粘贴文本')
+video_ui = VideoUI(200, 200, 200, 200, 'ui/space.mp4')
 
 # 修改主循环以使用窗口类
 window = Window(100, 100, 300, 200)
 window.add_child(text_box)
 
 window1 = Window(100, 300, 300, 200)
-window1.add_child(text_box1)
+window1.add_child(video_ui)
 
 root_ui.add_child(window)
 root_ui.add_child(window1)
 
+image_ui = ImageUI(200, 200, 200, 200, 'ui/earth.webp')
+window3 = Window(400, 300, 300, 200)
+window3.add_child(image_ui)
+
+root_ui.add_child(window3)
 
 # 修改主循环以使用窗口类
 outer_window = Window(400, 100, 300, 200)
@@ -48,6 +54,7 @@ def generate(root_window, level):
 root_ui.add_child(outer_window)
 
 generate(outer_window, 2)
+
 
 while running:
     for event in pygame.event.get():
